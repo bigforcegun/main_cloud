@@ -1,0 +1,22 @@
+
+services_root: "/srv"
+services_path:
+    organizr: "{{ services_root }}/organizr"
+    torproxy:
+        root: "{{ services_root }}/torproxy"
+    lidarr:
+        root: "{{ services_root }}/lidarr"
+        downloads: "/volume1/data/downloads/station/lidarr" 
+        music: "{{ music_library_path }}/music" 
+    sonarr:
+        root: "{{ services_root }}/sonarr"
+        downloads: "/volume1/data/downloads/station/sonarr" 
+        serials: "{{ video_library_path }}/serials" 
+    radarr:
+        root: "{{ services_root }}/radarr"
+        downloads: "/volume1/data/downloads/station/radarr" 
+        movies: "{{ video_library_path }}/movies" 
+    jackett:
+        root: "{{ services_root }}/jackett"
+        blackhole: "/volume1/data/downloads/jackett"
+

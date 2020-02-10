@@ -1,0 +1,7 @@
+[server]
+bigforcegun.com:322
+
+
+[all:vars]
+ansible_connection=ssh 
+ansible_user=main

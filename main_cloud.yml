@@ -1,0 +1,36 @@
+---
+- hosts: nas
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+  roles:
+    - role: jellyfin
+      tags: 
+        - jellyfin
+    
+    - role: music
+      tags: 
+        - music
+
+    - role: organizr
+      tags: 
+        - organizr
+
+    - role: jackett
+      tags: 
+        - jackett
+
+    - role: torproxy
+      tags: 
+        - torproxy
+
+    - role: lidarr
+      tags: 
+        - lidarr
+
+    - role: sonarr
+      tags: 
+        - sonarr
+  
+    - role: radarr
+      tags: 
+        - radarr
