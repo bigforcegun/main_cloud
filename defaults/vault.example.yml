@@ -1,0 +1,82 @@
+domain: 
+
+default_ssh_port: 22
+
+admin_user: 
+admin_user_key:
+admin_email: 
+
+deploy_user: 
+deploy_user_key:
+
+default_username: 
+default_password: 
+
+services_root: "/srv/cloud"
+
+# SMTP Settings
+smtp:
+  host: 
+  port: 
+  user: 
+  pass: 
+  from_email: 
+  from_name: 
+
+
+traefik_root: "/srv"
+traefik:
+  https_only: false
+  domain: false
+  network_name: "cloud_traefik"
+  subdomain: "traefik"
+  auth: true
+  expose_internally: true
+  expose_externally: false
+  send_anonymous_usage: false
+  dns_challenge_provider: false
+  # use key:value pairs here to add additional environment variables to your traefik docker image.
+  # for instance, if you're using a dns challenge provider place your api keys etc here.
+  additional_env_vars:
+    # DUMMY_KEY: DUMMY_VALUE
+    CF_API_EMAIL: "EMAIL"
+    CF_API_KEY: "API_KEY"
+
+services: 
+  authelia:
+    enabled: true
+    https_only: false
+    auth: true
+    domain: false
+    subdomain: "auth"
+    # Determines how verbose the logs are
+    log_level: "info"
+    # Do you want to login with your common name "john doe" or your username "jdoe"?
+    # defaults to Username
+    use_username: true
+    memory: 128
+    # This must be an address you can recieve mail at!
+    default_user_email: 
+    max:
+      # max # of retries to authenticate (default 5)
+      retries: 5
+      # max time before the retry count resets (default 2 min)
+      retries_in_time: 120
+      # if you exceed the max retry count within the time frame, you're banned
+      # for x seconds. (default 300 seconds /5 min)
+      retries_ban_time: 300
+    default:
+      # the number of authentication factors required by default
+      factor_count: one_factor
+      # how long it takes for the cookie to expire (default, 1hr)
+      cookie_expiration: 3600000
+      # inactivity time for the cookie default (5m)
+      cookie_inactivity: 300000 
+      # default policy - deny by default
+      policy: deny
+    duo:
+      hostname: 
+      integration_key: 
+      secret_key: 
+
+

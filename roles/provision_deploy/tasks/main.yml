@@ -1,0 +1,109 @@
+---
+- name: Make Traefik data directories.
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "1777"
+  loop:
+    - "{{ traefik_root }}/traefik"
+    - "{{ traefik_root }}/traefik/conf.d"
+    - /etc/docker
+  ignore_errors: "yes"
+
+- name: Configure docker log settings
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+
+# Needs passlib
+- name: Write user to basic auth file
+  htpasswd:
+    path: "{{ traefik_root }}/traefik/basicAuth"
+    name: "{{ default_username }}"
+    password: "{{ default_password }}"
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Configure SSL
+  file:
+    path: "{{ traefik_root }}/traefik/acme.json"
+    mode: 0600
+    state: touch
+
+- name: Configure Traefik systemd service.
+  template:
+    src: traefik.service
+    dest: /etc/systemd/system/traefik.service
+
+- name: Configure Traefik .yaml
+  template:
+    src: traefik.yaml.j2
+    dest: "{{ traefik_root }}/traefik/traefik.yaml"
+
+- name: Configure Traefik conf.d
+  template:
+    src: conf.d/middlewares.yaml
+    dest: "{{ traefik_root }}/traefik/conf.d/middlewares.yaml"
+
+- name: Copy Traefik docker-compose.yml file into place.
+  template:
+    src: docker-compose.traefik.yml.j2
+    dest: "{{ traefik_root }}/traefik/docker-compose.yml"
+  vars:
+    service_domain: "{% if traefik.domain %}{{ traefik.domain }}{% else %}{{ traefik.subdomain }}.{{ domain }}{% endif %}"
+
+- name: Create Cloud Services hosts file.
+  file:
+    path: "{{ traefik_root }}/cloud_hosts"
+    state: touch
+
+- name: Configure Cloud Services hosts file. You can find it at {{ traefik_root }}/cloud_hosts on your server.
+  lineinfile:
+    path: "{{ traefik_root }}/cloud_hosts"
+    line: "{{ ansible_host }} {{ service_item }}.{{ domain }} {{ service_item }}"
+  when: query
+  loop: "{{ services | flatten(1) }}"
+  loop_control:
+    loop_var: service_item
+  vars:
+    query: "{{ 'services.' + service_item + '.enabled|bool' }}"
+
+- name: Pull Traefik Image
+  command: chdir={{ traefik_root }}/traefik/ docker-compose pull
+
+- name: Start Traefik
+  systemd:
+    name: traefik
+    enabled: "yes"
+    daemon-reload: "yes"
+    state: restarted
+  ignore_errors: "yes"
+
+
+- name: Deploy enabled Services
+  include_role:
+    name: "{{ service_item }}"
+  when: query
+  loop: "{{ services | flatten(1) }}"
+  loop_control:
+    loop_var: service_item
+  vars:
+    service_domain: "{% if services[service_item].domain %}{{ services[service_item].domain }}{% else %}{{ services[service_item].subdomain }}.{{ domain }}{% endif %}"
+    query: "{{ 'services.' + service_item + '.enabled|bool' }}"
+
+- name: Ensure disabled services are not running
+  systemd:
+    name: "{{ service_item }}"
+    state: stopped
+    enable: false
+  when: "not query"
+  loop: "{{ services | flatten(1) }}"
+  loop_control:
+    loop_var: service_item
+  ignore_errors: "yes"
+  vars:
+    query: "{{ 'services.' + service_item + '.enabled|bool' }}"
+
+- debug:
+    msg: "Main Cloud Installed successfully! Go to https://organizr.{{ domain }}/ to get started."

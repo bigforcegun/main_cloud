@@ -1,0 +1,12 @@
+---
+- hosts: main_services
+  become: yes 
+  become_user: root
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+  roles:
+    - role: dashmachine
+      tags: 
+        - dashmachine
+    
+   

@@ -1,0 +1,77 @@
+---
+
+# https://serverfault.com/questions/840156/create-non-root-user-and-disable-root-ssh-in-ansible
+# I need to copy-paste some commands, cause in future i have different sutups for all users
+
+# - name: Check main user
+#   command: ssh -q -o BatchMode=yes -o ConnectTimeout=3 {{ admin_user }}@{{ inventory_hostname }}:{{ ansible_port }} "echo OK"
+#   delegate_to: 127.0.0.1
+#   changed_when: false
+#   failed_when: false
+#   register: check_admin_user
+# - block:
+#   - name: Create Admin user
+#     user:
+#       name: "{{ admin_user }}"
+#       comment: "Admin user"
+#       shell: /bin/bash
+#       groups: sudo
+#       append: yes
+#   - name: Add authorized key
+#     authorized_key:
+#       user: "{{ admin_user }}"
+#       state: present
+#       key: "{{ admin_user_key }}"
+#       exclusive: yes
+#   - name: Allow sudo for {{ admin_user }}
+#     copy:
+#       content: "{{ admin_user }} ALL=(ALL) NOPASSWD: ALL"
+#       dest: "/etc/sudoers.d/{{ admin_user }}"
+#       mode: 0600
+#   when: not "OK" in check_admin_user.stdout
+
+
+- name: Create Users
+  user:
+    name: "{{ item }}"
+    comment: "Admin user"
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+  with_items:
+    - "{{ admin_user }}"
+    - "{{ deploy_user }}"
+
+
+- name: Add authorized key
+  authorized_key:
+    user: "{{ item.user }}"
+    state: present
+    key: "{{ item.key }}"
+    exclusive: yes
+  with_items:
+    - user: "{{ admin_user }}"
+      key: "{{ admin_user_key }}"
+    - user: "{{ deploy_user }}"
+      key: "{{ deploy_user_key }}"
+
+
+- name: Allow sudo for new users
+  copy:
+    content: "{{ item }} ALL=(ALL) NOPASSWD: ALL"
+    dest: "/etc/sudoers.d/{{ item }}"
+    mode: 0600
+  with_items:
+    - "{{ admin_user }}"
+    - "{{ deploy_user }}"
+
+
+# - name: Copy custom user cofings
+
+
+- name: Remove root from ssh
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+  notify: "Restart sshd"

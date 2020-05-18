@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  dashmachine:
+    restart: unless-stopped
+    image: rmountjoy/dashmachine:latest
+    container_name: dashmachine
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=Europe/London
+    #ports:
+    #  - 5000:5000
+    volumes:
+      - ./data:/dashmachine/dashmachine/user_data
+    labels:
+      - "traefik.port=5000"
+      - "traefik.backend=d.bigforcegun.com"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:d.bigforcegun.com"
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external:
+      name: "traefik_default"

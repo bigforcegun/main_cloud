@@ -1,0 +1,19 @@
+[Unit]
+Description=Cloud {{ service_item }} Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+User={{ deploy_user }}
+Group={{ deploy_user }}
+TimeoutStartSec=infinity
+TimeoutStopSec=5min
+Restart=always
+RestartSec=3
+WorkingDirectory={{ services_root }}/{{ service_item }}/
+
+ExecStart=/usr/local/bin/docker-compose up
+ExecStop=/usr/local/bin/docker-compose down
+
+[Install]
+WantedBy=multi-user.target

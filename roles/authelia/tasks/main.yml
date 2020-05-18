@@ -1,0 +1,43 @@
+---
+- name: Make authelia directory.
+  file:
+    path: "{{ services_root }}/authelia"
+    state: directory
+
+- name: Copy authelia docker-compose.yml file into place.
+  template:
+    src: docker-compose.authelia.yml.j2
+    dest: "{{ services_root }}/authelia/docker-compose.yml"
+
+- name: Generate new argon2id compatible password.
+  shell: >
+    docker run --rm authelia/authelia:4.18.1 authelia hash-password -l 16 -m {{ services.authelia.memory }} {{default_password}} | awk '{print $3}'
+  register: authelia_hash
+  become: false
+
+- name: Copy userdb.yml file into place.
+  template:
+    src: userdb.yml.j2
+    dest: "{{ services_root }}/authelia/userdb.yml"
+  vars:
+    authelia_hash: "{{ authelia_hash.stdout }}"
+
+- name: Copy authelia_config.yml file into place.
+  template:
+    src: authelia_config.yml.j2
+    dest: "{{ services_root }}/authelia/authelia_config.yml"
+  vars:
+    domain_parts: "{{ domain.split('.') }}"
+
+- name: Configure authelia systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/authelia.service
+
+- name: Start authelia
+  systemd:
+    name: authelia
+    enabled: "yes"
+    daemon-reload: "yes"
+    # state: started
+    state: restarted

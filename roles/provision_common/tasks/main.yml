@@ -1,0 +1,107 @@
+---
+
+- name: Install necessities and nice-to-haves
+  apt:
+    name:
+      - apt-transport-https
+      - apt-file
+      - ca-certificates
+      - cifs-utils
+      - curl
+      - wget
+      - software-properties-common
+      - git
+      - htop
+      - iftop
+      - iotop
+      - mosh
+      - nfs-common
+      - tmux
+      - sudo
+      - unattended-upgrades
+      - vim
+      - zsh
+      - docker
+      - whois
+      - python3
+      - python3-pip
+      - python3-virtualenv
+      - python3-passlib
+      - python3-openssl
+      - tldr
+      - goaccess
+      - jq
+      - net-tools
+      - htop
+      - apache2-utils
+      - screenfetch
+      - neofetch
+      - stress
+      - unrar
+      - rar
+      - finger
+      - tree
+      - unzip
+      - ranger
+      - ripgrep
+      - make 
+      - docker.io
+  tags:
+    - dependencies
+
+
+- name: Correct Python version selected
+  alternatives:
+    name: python
+    link: /usr/bin/python
+    path: /usr/bin/python3
+
+- name: Install Passlib
+  pip:
+    name: passlib
+
+- name: Check if docker-compose exists
+  stat: 
+    path: /etc/shorewall/rules
+  register: compose_exists
+
+- name: Install truhly latest docker-compose version - support compose files 3.8 - for custom network names 
+  shell: "curl -L https://github.com/docker/compose/releases/download/1.25.5/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose"
+  when: compose_exists.stat.exists == True
+     
+- name: Make compose file executable
+  file: 
+    dest: /usr/local/bin/docker-compose
+    mode: a+x  
+  
+- name: timezone - configure /etc/timezone
+  copy:
+    content: "{{ server_common_timezone | regex_replace('$', '\n') }}"
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: 0644
+  register: common_timezone_config
+
+- name: timezone - Set localtime to UTC
+  file: src=/usr/share/zoneinfo/Etc/UTC dest=/etc/localtime
+  when: common_timezone_config.changed
+
+- name: timezone - reconfigure tzdata
+  command: dpkg-reconfigure --frontend noninteractive tzdata
+  when: common_timezone_config.changed
+
+- name: Ensure locale en_US.UTF-8 locale is present
+  locale_gen:
+    name: en_US.UTF-8
+    state: present
+
+- name: adding existing users to group docker
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  become: true
+  with_items:
+    - "{{ admin_user }}"
+    - "{{ deploy_user }}"

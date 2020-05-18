@@ -1,0 +1,108 @@
+- name: create service user
+  user:
+    name: "{{ services.dashmachine.user }}"
+    # group: "{{ services.dashmachine.group }}"
+    comment: dashmachine user
+    home: "{{ services.dashmachine.root }}"
+  when: services.dashmachine.create_user|default(false)|bool == true
+
+
+- name: create service root directory
+  file:
+    path: "{{ services.dashmachine.root }}"
+    state: directory
+    owner: "{{ services.dashmachine.user }}"
+    group: "{{ services.dashmachine.group }}"
+    #mode: 0775
+    #recurse: yes
+
+
+- name: create service main directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ services.dashmachine.user }}"
+    group: "{{ services.dashmachine.group }}"
+  with_items:
+    - '{{ services.dashmachine.root }}/data'
+
+
+- name: check if certs files exists
+  stat: 
+    path: "/etc/letsencrypt/live/{{ services.dashmachine.domain }}"
+  register: ansible_letsencrypt_state
+
+
+- debug:
+    var: ansible_letsencrypt_state.stat.exists
+
+
+- name: install nginx config
+  template:
+    src: templates/nginx.conf.j2
+    dest: "/etc/nginx/sites-available.d/{{services.dashmachine.name}}.conf"
+  vars:
+    domain: "{{ services.dashmachine.domain }}"
+    upstream_name: "{{ services.dashmachine.name }}"
+    cert_exists2: "{{ ansible_letsencrypt_state.stat.exists }}"
+    cert_exists: "{{ ansible_letsencrypt_state.stat.exists }}"
+  
+    
+- name: enable nginx config
+  file:
+    src: "/etc/nginx/sites-available.d/{{services.dashmachine.name}}.conf"
+    dest:  "/etc/nginx/sites-enabled.d/{{services.dashmachine.name}}.conf"
+    state: link   
+
+
+- name: copy docker-compose file
+  copy:
+    src: files/docker-compose.yml
+    dest: "{{ services.dashmachine.root }}/docker-compose.yml"
+
+
+- name: reload nginx
+  service: name=nginx state=reloaded   
+  
+  
+- name: run certbot if cert not exists
+  command: "certbot certonly --webroot -w /var/lib/letsencrypt/ -d {{ 3 }}"
+  register: output
+  when: ansible_letsencrypt_state.stat.exists == false
+
+
+- debug:
+    var: output
+
+
+- name: check if certs files exists
+  stat: 
+    path: "/etc/letsencrypt/live/{{ services.dashmachine.domain }}"
+  register: ansible_letsencrypt_state
+  
+
+- name: install nginx config with certs
+  template:
+    src: templates/nginx.conf.j2
+    dest: "/etc/nginx/sites-available.d/{{services.dashmachine.name}}.conf"
+  vars:
+    domain: "{{ services.dashmachine.domain }}"
+    upstream_name: "{{ services.dashmachine.name }}"
+    cert_exists: "{{ ansible_letsencrypt_state.stat.exists }}"
+  when: ansible_letsencrypt_state.stat.exists == false
+
+- debug:
+    var: ansible_letsencrypt_state.stat.exists
+
+- name: reload nginx
+  service: name=nginx state=reloaded 
+  when: ansible_letsencrypt_state.stat.exists == false
+
+
+- name: Create and start services
+  docker_compose:
+    project_src: "{{ services.dashmachine.root }}"
+  register: output
+
+#- debug:
+#    var: output

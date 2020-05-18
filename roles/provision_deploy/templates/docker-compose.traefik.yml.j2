@@ -1,0 +1,60 @@
+---
+version: '3.8'
+
+networks:
+  traefik:
+    name: {{ traefik.network_name }}
+    driver: bridge
+
+services:
+  # Load Balancer / SSL / Web Server
+  traefik:
+    image: traefik:v2.2
+    restart: always
+    networks:
+      - traefik
+    ports:
+{% if traefik.expose_internally %}
+      - "8181:8080"
+{% endif %}
+      - "80:80"
+      - "443:443"
+{% if traefik.additional_env_vars %}
+    environment:
+{% for item in traefik.additional_env_vars | dict2items %}
+      - {{item.key}}={{item.value}}
+{% endfor %}
+{% endif %}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "{{ traefik_root }}/traefik/traefik.yaml:/traefik.yaml"
+      - "{{ traefik_root }}/traefik/basicAuth:/basicAuth"
+      - "{{ traefik_root }}/traefik/conf.d/:/conf.d/"
+      - "{{ traefik_root }}/traefik/acme.json:/acme.json"
+{% if traefik.expose_externally %}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ traefik.network_name }}"
+      - "traefik.http.routers.traefik-http.rule=Host(`{{ service_domain }}`)"
+      # - "traefik.http.routers.traefik-http.rule=Host(`{{ service_domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.traefik-http.entrypoints=http"
+{% if not traefik.https_only %}
+      - "traefik.http.routers.traefik-http.middlewares={% if traefik.https_only %}redirect@file, {% else %}{% if traefik.auth %}{% if services.authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}{% endif %}customFrameCloud@file"
+{% else %}
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik-http.middlewares=redirect-to-https"
+{% endif %}
+      - "traefik.http.routers.traefik.rule=Host(`{{ service_domain }}`)"
+      # - "traefik.http.routers.traefik.rule=Host(`{{ service_domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.traefik.entrypoints=https"
+      - "traefik.http.routers.traefik.middlewares={% if traefik.auth %}{% if services.authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}customFrameCloud@file"
+      - "traefik.http.routers.traefik.tls=true"
+{% if traefik.dns_challenge_provider %}
+      - "traefik.http.routers.traefik.tls.certresolver=dns"
+      - "traefik.http.routers.traefik.tls.domains[0].main={{ domain }}"
+      - "traefik.http.routers.traefik.tls.domains[0].sans=*.{{ domain }}"
+{% else %}
+      - "traefik.http.routers.traefik.tls.certresolver=http"
+{% endif %}
+      - "traefik.http.routers.traefik.service=api@internal"
+{% endif %}

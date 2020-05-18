@@ -1,0 +1,25 @@
+---
+
+http:
+  middlewares:
+    authelia:
+      forwardAuth:
+        address: "http://auth:9091/api/verify?rd=https://auth.{{ domain }}/"
+        trustForwardHeader: true
+    basicAuth:
+      basicAuth:
+        usersFile: "/basicAuth"
+    redirect:
+      redirectScheme:
+        scheme: https
+    customFrameCloud:
+      headers:
+        customFrameOptionsValue: "ALLOW-FROM http://{{ domain }} ALLOW-FROM https://{{ domain }}"
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        forceSTSHeader: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        stsPreload: true
