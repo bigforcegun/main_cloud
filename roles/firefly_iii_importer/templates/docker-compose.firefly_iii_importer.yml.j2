@@ -1,0 +1,24 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  firefly_iii_importer_app:
+    restart: unless-stopped
+    environment:
+      - FIREFLY_III_ACCESS_TOKEN="{{ lookup('password', './settings/passwords/firefly_importer_access_token chars=ascii_letters') }}"
+      - FIREFLY_III_URI="{{services.firefly_iii_importer.firefly_iii_api_uri}}"
+      - APP_ENV="production"
+      - WEB_SERVER=true
+      - APP_URL="https://{{ service_domain }}"
+      - ServerName={{ service_domain }}
+      - TZ={{ server_common_timezone }}
+    image: fireflyiii/csv-importer:develop
+    networks:
+      - traefik_network
+    labels:
+{% include 'traefik_labels.j2' %}

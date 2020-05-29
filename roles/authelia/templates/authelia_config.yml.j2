@@ -8,7 +8,7 @@ port: 9091
 # Log level
 #
 # Level of verbosity for logs
-log_level: {{ services.authelia.log_level }}
+log_level: {{ authelia.log_level }}
 
 # The secret used to generate JWT tokens when validating user identity by
 # email confirmation.
@@ -51,11 +51,11 @@ totp:
 #
 # Parameters used to contact the Duo API. Those are generated when you protect an application
 # of type "Partner Auth API" in the management panel.
-{% if services.authelia.duo.hostname %}
+{% if authelia.duo.hostname %}
 duo_api:
-  hostname: {{ services.authelia.duo.hostname }}
-  integration_key: {{ services.authelia.duo.integration_key }}
-  secret_key: {{ services.authelia.duo.secret_key }}
+  hostname: {{ authelia.duo.hostname }}
+  integration_key: {{ authelia.duo.integration_key }}
+  secret_key: {{ authelia.duo.secret_key }}
 {% endif %}
 
 # The authentication backend to use for verifying user passwords
@@ -82,7 +82,7 @@ authentication_backend:
       iterations: 1
       key_length: 32
       salt_length: 16
-      memory: {{ services.authelia.memory }} 
+      memory: {{ authelia.memory }} 
       parallelism: 8
 
 # Access Control
@@ -123,7 +123,7 @@ access_control:
   # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
   # It is the policy applied to any resource if there is no policy to be applied
   # to the user.
-  default_policy: {{ services.authelia.default.policy }}
+  default_policy: {{ authelia.default.policy }}
 
   rules:
     - domain: portainer.{{ domain }}
@@ -133,7 +133,7 @@ access_control:
       policy: bypass
 
     - domain: '*.{{ domain }}'
-      policy: {{ services.authelia.default.factor_count }}
+      policy: {{ authelia.default.factor_count }}
 
 # Configuration of session cookies
 #
@@ -146,10 +146,10 @@ session:
   secret: {{lookup('password', './settings/passwords/authelia_session_secret')}}
 
   # The time in ms before the cookie expires and session is reset.
-  expiration: {{ services.authelia.default.cookie_expiration }}  # 1 hour
+  expiration: {{ authelia.default.cookie_expiration }}  # 1 hour
 
   # The inactivity time in ms before the session is reset.
-  inactivity: {{ services.authelia.default.cookie_inactivity }} # 5 minutes
+  inactivity: {{ authelia.default.cookie_inactivity }} # 5 minutes
 
   # The remember me duration.
   # Value of 0 disables remember me.
@@ -176,14 +176,14 @@ session:
 regulation:
   # The number of failed login attempts before user is banned.
   # Set it to 0 to disable regulation.
-  max_retries: {{ services.authelia.max.retries }} 
+  max_retries: {{ authelia.max.retries }} 
 
   # The time range during which the user can attempt login before being banned.
   # The user is banned if the authenticaction failed `max_retries` times in a `find_time` seconds window.
-  find_time: {{ services.authelia.max.retries_in_time }}
+  find_time: {{ authelia.max.retries_in_time }}
 
   # The length of time before a banned user can login again.
-  ban_time: {{ services.authelia.max.retries_ban_time }}
+  ban_time: {{ authelia.max.retries_ban_time }}
 
 # Configuration of the storage backend used to store data and secrets.
 #

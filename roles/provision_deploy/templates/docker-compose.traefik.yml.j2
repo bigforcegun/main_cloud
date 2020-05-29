@@ -39,7 +39,7 @@ services:
       # - "traefik.http.routers.traefik-http.rule=Host(`{{ service_domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
       - "traefik.http.routers.traefik-http.entrypoints=http"
 {% if not traefik.https_only %}
-      - "traefik.http.routers.traefik-http.middlewares={% if traefik.https_only %}redirect@file, {% else %}{% if traefik.auth %}{% if services.authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}{% endif %}customFrameCloud@file"
+      - "traefik.http.routers.traefik-http.middlewares={% if traefik.https_only %}redirect@file, {% else %}{% if traefik.auth %}{% if authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}{% endif %}customFrameCloud@file"
 {% else %}
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.routers.traefik-http.middlewares=redirect-to-https"
@@ -47,7 +47,7 @@ services:
       - "traefik.http.routers.traefik.rule=Host(`{{ service_domain }}`)"
       # - "traefik.http.routers.traefik.rule=Host(`{{ service_domain }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
       - "traefik.http.routers.traefik.entrypoints=https"
-      - "traefik.http.routers.traefik.middlewares={% if traefik.auth %}{% if services.authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}customFrameCloud@file"
+      - "traefik.http.routers.traefik.middlewares={% if traefik.auth %}{% if authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}customFrameCloud@file"
       - "traefik.http.routers.traefik.tls=true"
 {% if traefik.dns_challenge_provider %}
       - "traefik.http.routers.traefik.tls.certresolver=dns"

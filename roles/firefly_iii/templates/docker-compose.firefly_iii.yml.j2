@@ -1,0 +1,56 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  # Financial Tracker
+  firefly_iii_app:
+    restart: unless-stopped
+    depends_on:
+      - firefly_iii_db
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=firefly_iii_db
+      - DB_DATABASE=firefly_db
+      - DB_USERNAME=firefly_db
+      - DB_PORT=5432
+      - DB_PASSWORD={{ lookup('password', './settings/passwords/firefly_db_password chars=ascii_letters') }}
+      - APP_KEY={{ lookup('password', './settings/passwords/firefly_app_key chars=ascii_letters length=32') }}
+      # Using heroku as APP_ENV, just to ensure generated URIs start with HTTPS, leveraging:
+      # https://github.com/firefly-iii/firefly-iii/blob/master/app/Providers/AppServiceProvider.php#L42
+      # This fixes issue with SSL termination at traefik, and forces HTTPS URIs everywhere
+      - APP_ENV=heroku
+      - APP_URL=https://{{ service_domain }}
+      - MAIL_DRIVER=smtp
+      - MAIL_HOST={{ smtp.host }}
+      - MAIL_PORT={{ smtp.port }}
+      - MAIL_FROM={{ smtp.from_email }}
+      - MAIL_USERNAME={{ smtp.user }}
+      - MAIL_PASSWORD={{ smtp.pass }}
+      - MAIL_ENCRYPTION=tls
+      - TZ={{ server_common_timezone }}
+      - ServerName={{ service_domain }}
+    image: jc5x/firefly-iii
+    networks:
+      - traefik_network
+    volumes:
+      - "{{ service_root }}/export:/var/www/firefly-iii/storage/export"
+      - "{{ service_root }}/upload:/var/www/firefly-iii/storage/upload"
+    labels:
+{% include 'traefik_labels.j2' %}
+
+  firefly_iii_db:
+    image: "postgres:12"
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD={{ lookup('password', './settings/passwords/firefly_db_password chars=ascii_letters') }}
+      - POSTGRES_USER=firefly_db
+      - POSTGRES_DB=firefly_db
+    networks:
+      - traefik_network
+    volumes:
+      - "{{ service_root }}/db:/var/lib/postgresql/data"

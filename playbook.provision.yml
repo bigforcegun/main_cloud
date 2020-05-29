@@ -49,4 +49,17 @@
     - provision_deploy
 
 
+- name: Deploy services2
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+  become: true
+  hosts: main_services
+  tags: setup_services
+  roles:
+    # Install Docker, configure basic server settings
+    - provision_deploy_services
+
+
+
 

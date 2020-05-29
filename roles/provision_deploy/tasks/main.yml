@@ -53,22 +53,6 @@
   vars:
     service_domain: "{% if traefik.domain %}{{ traefik.domain }}{% else %}{{ traefik.subdomain }}.{{ domain }}{% endif %}"
 
-- name: Create Cloud Services hosts file.
-  file:
-    path: "{{ traefik_root }}/cloud_hosts"
-    state: touch
-
-- name: Configure Cloud Services hosts file. You can find it at {{ traefik_root }}/cloud_hosts on your server.
-  lineinfile:
-    path: "{{ traefik_root }}/cloud_hosts"
-    line: "{{ ansible_host }} {{ service_item }}.{{ domain }} {{ service_item }}"
-  when: query
-  loop: "{{ services | flatten(1) }}"
-  loop_control:
-    loop_var: service_item
-  vars:
-    query: "{{ 'services.' + service_item + '.enabled|bool' }}"
-
 - name: Pull Traefik Image
   command: chdir={{ traefik_root }}/traefik/ docker-compose pull
 
@@ -80,30 +64,17 @@
     state: restarted
   ignore_errors: "yes"
 
+- name: Deploy Authelia
+  include_role:
+    name: "authelia"
+  vars:
+    service_domain: "{{ authelia.subdomain }}.{{ domain }}"
+    service_root: " {{ services_root }}/authelia"
+    service_item: "authelia"
 
 - name: Deploy enabled Services
   include_role:
-    name: "{{ service_item }}"
-  when: query
-  loop: "{{ services | flatten(1) }}"
-  loop_control:
-    loop_var: service_item
-  vars:
-    service_domain: "{% if services[service_item].domain %}{{ services[service_item].domain }}{% else %}{{ services[service_item].subdomain }}.{{ domain }}{% endif %}"
-    query: "{{ 'services.' + service_item + '.enabled|bool' }}"
-
-- name: Ensure disabled services are not running
-  systemd:
-    name: "{{ service_item }}"
-    state: stopped
-    enable: false
-  when: "not query"
-  loop: "{{ services | flatten(1) }}"
-  loop_control:
-    loop_var: service_item
-  ignore_errors: "yes"
-  vars:
-    query: "{{ 'services.' + service_item + '.enabled|bool' }}"
+    name: "provision_deploy_services"
 
 - debug:
     msg: "Main Cloud Installed successfully! Go to https://organizr.{{ domain }}/ to get started."
