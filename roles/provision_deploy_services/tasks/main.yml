@@ -24,6 +24,7 @@
     service_root: "{{ services_root }}/{{ service_item }}"
     service_https_only: "{{ services[service_item].https_only }}"
     service_auth: "{{ services[service_item].auth }}"
+    service_port: "{{ services[service_item].internal_port }}"
        
 
 - name: Ensure disabled services are not running

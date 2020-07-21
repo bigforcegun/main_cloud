@@ -1,108 +1,37 @@
-- name: create service user
-  user:
-    name: "{{ services.dashmachine.user }}"
-    # group: "{{ services.dashmachine.group }}"
-    comment: dashmachine user
-    home: "{{ services.dashmachine.root }}"
-  when: services.dashmachine.create_user|default(false)|bool == true
-
-
-- name: create service root directory
+---
+- name: Make Dashmachine directory.
   file:
-    path: "{{ services.dashmachine.root }}"
+    path: "{{ service_root }}"
     state: directory
-    owner: "{{ services.dashmachine.user }}"
-    group: "{{ services.dashmachine.group }}"
-    #mode: 0775
-    #recurse: yes
 
-
-- name: create service main directories
+- name: Create Dashmachine main directories
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ services.dashmachine.user }}"
-    group: "{{ services.dashmachine.group }}"
   with_items:
-    - '{{ services.dashmachine.root }}/data'
+    - '{{ service_root }}/data'
 
-
-- name: check if certs files exists
-  stat: 
-    path: "/etc/letsencrypt/live/{{ services.dashmachine.domain }}"
-  register: ansible_letsencrypt_state
-
-
-- debug:
-    var: ansible_letsencrypt_state.stat.exists
-
-
-- name: install nginx config
+- name: Copy Dashmachine docker-compose.yml file into place.
   template:
-    src: templates/nginx.conf.j2
-    dest: "/etc/nginx/sites-available.d/{{services.dashmachine.name}}.conf"
-  vars:
-    domain: "{{ services.dashmachine.domain }}"
-    upstream_name: "{{ services.dashmachine.name }}"
-    cert_exists2: "{{ ansible_letsencrypt_state.stat.exists }}"
-    cert_exists: "{{ ansible_letsencrypt_state.stat.exists }}"
-  
-    
-- name: enable nginx config
-  file:
-    src: "/etc/nginx/sites-available.d/{{services.dashmachine.name}}.conf"
-    dest:  "/etc/nginx/sites-enabled.d/{{services.dashmachine.name}}.conf"
-    state: link   
+    src: docker-compose.dashmachine.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
 
-
-- name: copy docker-compose file
-  copy:
-    src: files/docker-compose.yml
-    dest: "{{ services.dashmachine.root }}/docker-compose.yml"
-
-
-- name: reload nginx
-  service: name=nginx state=reloaded   
-  
-  
-- name: run certbot if cert not exists
-  command: "certbot certonly --webroot -w /var/lib/letsencrypt/ -d {{ 3 }}"
-  register: output
-  when: ansible_letsencrypt_state.stat.exists == false
-
-
-- debug:
-    var: output
-
-
-- name: check if certs files exists
-  stat: 
-    path: "/etc/letsencrypt/live/{{ services.dashmachine.domain }}"
-  register: ansible_letsencrypt_state
-  
-
-- name: install nginx config with certs
+- name: Copy Dashmachine config.ini file into place.
   template:
-    src: templates/nginx.conf.j2
-    dest: "/etc/nginx/sites-available.d/{{services.dashmachine.name}}.conf"
+    src: config.ini.j2
+    dest: "{{ service_root }}/data/config.ini"
   vars:
-    domain: "{{ services.dashmachine.domain }}"
-    upstream_name: "{{ services.dashmachine.name }}"
-    cert_exists: "{{ ansible_letsencrypt_state.stat.exists }}"
-  when: ansible_letsencrypt_state.stat.exists == false
+    config_prefix: " {{ lookup('file', './settings/dashmachine/config.ini', ) }} "
+    dash_services: "{{ services.keys() | list }}" 
 
-- debug:
-    var: ansible_letsencrypt_state.stat.exists
+- name: Configure Dashmachine systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/dashmachine.service
 
-- name: reload nginx
-  service: name=nginx state=reloaded 
-  when: ansible_letsencrypt_state.stat.exists == false
-
-
-- name: Create and start services
-  docker_compose:
-    project_src: "{{ services.dashmachine.root }}"
-  register: output
-
-#- debug:
-#    var: output
+- name: Start Dashmachine
+  systemd:
+    name: dashmachine
+    enabled: "yes"
+    daemon-reload: "yes"
+    state: restarted

@@ -1,0 +1,23 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  dashmachine_app:
+    restart: unless-stopped
+    image: rmountjoy/dashmachine:latest
+    container_name: dashmachine
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ={{ server_common_timezone }}
+    volumes:
+      - "{{ service_root }}/data:/dashmachine/dashmachine/user_data"
+    networks:
+      - traefik_network
+    labels:
+{% include 'traefik_labels.j2' %}
