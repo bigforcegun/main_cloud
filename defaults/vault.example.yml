@@ -9,6 +9,11 @@ admin_email:
 deploy_user: 
 deploy_user_key:
 
+transfer_user:
+
+transfer_user_keys:
+  - "{{ admin_user_key }}"
+
 default_username: 
 default_password: 
 

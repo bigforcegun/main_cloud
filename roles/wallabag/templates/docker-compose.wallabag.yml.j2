@@ -1,0 +1,59 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  # Wallabag - self-hostable app for saving webpages
+  wallabag_app:
+    container_name: wallabag_app
+    image: wallabag/wallabag
+    networks:
+      - traefik_network
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD={{lookup('password', './settings/passwords/wallabag_db_root_password chars=ascii_letters')}}
+      - SYMFONY__ENV__DATABASE_DRIVER=pdo_mysql
+      - SYMFONY__ENV__DATABASE_HOST=wallabag_db
+      - SYMFONY__ENV__DATABASE_PORT=3306
+      - SYMFONY__ENV__DATABASE_NAME=wallabag
+      - SYMFONY__ENV__DATABASE_USER=wallabag
+      - SYMFONY__ENV__DATABASE_PASSWORD={{lookup('password', './settings/passwords/wallabag_db_password chars=ascii_letters')}}
+      - MYSQL_DATABASE=wallabag
+      - SYMFONY__ENV__DATABASE_CHARSET=utf8
+      - SYMFONY__ENV__MAILER_HOST=127.0.0.1
+      - SYMFONY__ENV__MAILER_USER=~
+      - SYMFONY__ENV__MAILER_PASSWORD=~
+      - SYMFONY__ENV__FROM_EMAIL=wallabag@bigforcegun.com
+      - SYMFONY__ENV__DOMAIN_NAME=https://{{ service_domain }}
+    volumes:
+      - "{{ service_root }}/data:/var/www/wallabag/data"
+      - "{{ service_root }}/images:/var/www/wallabag/web/assets/images"
+    depends_on:
+      - wallabag_db
+      - redis
+    labels:
+{% include 'traefik_labels.j2' %}
+
+  wallabag_db:
+    container_name: wallabag_db
+    # image: linuxserver/mariadb:10.4
+    image: mariadb:10.4
+    networks:
+      - traefik_network
+    restart: unless-stopped
+    volumes:
+      - "{{ service_root }}/db:/var/lib/mysql"
+    environment:
+      - PUID={{ PUID }}
+      - PGID={{ PGID }}
+      - TZ={{ server_common_timezone }}
+      - MYSQL_ROOT_PASSWORD={{lookup('password', './settings/passwords/wallabag_db_root_password chars=ascii_letters')}}
+      - MYSQL_PASSWORD={{lookup('password', './settings/passwords/wallabag_db_password chars=ascii_letters')}}
+
+  redis:
+    container_name: wallabag_redis
+    image: redis:alpine

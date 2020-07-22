@@ -42,6 +42,15 @@
     - "{{ admin_user }}"
     - "{{ deploy_user }}"
 
+- name: Create transfer user
+  user:
+    name: "{{ transfer_user }}"
+    comment: "Transfer user for spc and backups"
+    shell: /bin/bash
+    append: yes
+    state: present
+  register: transfer_user_info
+
 
 - name: Add authorized key
   authorized_key:
@@ -55,6 +64,20 @@
     - user: "{{ deploy_user }}"
       key: "{{ deploy_user_key }}"
 
+- name: Add authorized keys for transfer user
+  authorized_key:
+    user: "{{ transfer_user }}"
+    state: present
+    key: "{{ item }}"
+    # exclusive: yes
+  with_items: "{{ transfer_user_keys }}"
+    
+
+- name: Generate unique SSH keys for transfer user
+  openssh_keypair:
+    path: "{{ transfer_user_info.home }}/.ssh/id_rsa"
+  become: true
+  become_user: "{{ transfer_user }}"
 
 - name: Allow sudo for new users
   copy:

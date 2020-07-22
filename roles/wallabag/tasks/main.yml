@@ -1,0 +1,26 @@
+---
+- name: Make Wallabag main directories.
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ service_root }}/data"
+    - "{{ service_root }}/images"
+    - "{{ service_root }}/db"
+
+- name: Copy Wallabag docker-compose.yml file into place.
+  template:
+    src: docker-compose.wallabag.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+ 
+- name: Configure Wallabag systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/wallabag.service
+
+- name: Start Wallabag
+  systemd:
+    name: wallabag
+    enabled: "yes"
+    daemon-reload: "yes"
+    state: started
