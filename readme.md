@@ -59,3 +59,18 @@ ansible-playbook playbook.provision.yml --tags setup_deploy
 #### Authelia
 
 ### Step 2 - Install other services
+
+
+## Migration notes
+
+### Fsync
+
+https://github.com/mozilla-services/syncserver/issues/208
+
+### Wallabag
+
+```bash
+
+docker-compose exec -T wallabag_db sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD"' < wallabag_dump.sql
+
+```

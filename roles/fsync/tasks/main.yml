@@ -1,0 +1,24 @@
+---
+- name: Make Fsync main directories.
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ service_root }}/data"
+
+- name: Copy Fsync docker-compose.yml file into place.
+  template:
+    src: docker-compose.fsync.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+ 
+- name: Configure Fsync systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/fsync.service
+
+- name: Start Fsync
+  systemd:
+    name: fsync
+    enabled: "yes"
+    daemon-reload: "yes"
+    state: started

@@ -34,4 +34,4 @@
     name: dashmachine
     enabled: "yes"
     daemon-reload: "yes"
-    state: restarted
+    state: started

@@ -1,0 +1,28 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  # Wallabag - self-hostable app for saving webpages
+  fsync_app:
+    container_name: fsync_app
+    image: mozilla/syncserver:latest
+    # user: 1006:1007
+    networks:
+      - traefik_network
+    restart: unless-stopped
+    environment:
+      SYNCSERVER_PUBLIC_URL: "https://{{ service_domain }}"
+      SYNCSERVER_SECRET: "{{ lookup('password', './settings/passwords/fsync_server_secret') }}"
+      SYNCSERVER_SQLURI: "sqlite:////data/syncserver.db"
+      SYNCSERVER_BATCH_UPLOAD_ENABLED: "true"
+      SYNCSERVER_FORCE_WSGI_ENVIRON: "true"
+      PORT: 8080
+    volumes:
+      - "{{ service_root }}/data:/data"
+    labels:
+{% include 'traefik_labels.j2' %}
