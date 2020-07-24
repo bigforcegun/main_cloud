@@ -1,0 +1,35 @@
+---
+
+- name: Create necessary folders, with appropriate permissions.
+  file:
+    path: "{{ service_root }}/{{ item }}"
+    state: directory
+    owner: "{{ puid }}"
+    group: "{{ pgid }}"
+  with_items:
+    - "apps"
+    - "config"
+    - "webroot"
+    - "themes"
+    - "data"
+    - "db"
+
+- name: Copy Nextcloud docker-compose.yml file into place.
+  template:
+    src: docker-compose.nextcloud.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+  vars:
+    uid: "{{ puid }}"
+    gid: "{{ pgid }}"
+
+- name: Configure Nextcloud systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/nextcloud.service
+
+- name: Start Nextcloud
+  systemd:
+    name: nextcloud
+    enabled: "yes"
+    daemon-reload: "yes"
+    state: started

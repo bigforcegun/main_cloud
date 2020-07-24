@@ -48,8 +48,6 @@ services:
     volumes:
       - "{{ service_root }}/db:/var/lib/mysql"
     environment:
-      - PUID={{ PUID }}
-      - PGID={{ PGID }}
       - TZ={{ server_common_timezone }}
       - MYSQL_ROOT_PASSWORD={{lookup('password', './settings/passwords/wallabag_db_root_password chars=ascii_letters')}}
       - MYSQL_PASSWORD={{lookup('password', './settings/passwords/wallabag_db_password chars=ascii_letters')}}

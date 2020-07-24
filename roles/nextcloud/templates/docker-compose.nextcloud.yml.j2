@@ -1,0 +1,71 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  nextcloud_db:
+    # image: linuxserver/mariadb:10.4
+    image: mariadb:10.4
+    restart: unless-stopped
+    container_name: nextcloud_db
+    user: {{ puid }}:{{ pgid }}
+    volumes:
+      - "{{ service_root }}/db:/var/lib/mysql"
+    networks:
+      - traefik_network
+    restart: unless-stopped
+    environment:
+      - TZ={{ server_common_timezone }}
+      - MYSQL_ROOT_PASSWORD={{lookup('password', './settings/passwords/nextcloud_db_root_password chars=ascii_letters')}}
+      - MYSQL_PASSWORD={{lookup('password', './settings/passwords/nextcloud_db_password chars=ascii_letters')}}
+      - MYSQL_DATABASE=nextcloud_db
+      - MYSQL_USER=nextcloud
+  nextcloud_redis:
+    image: redis:5.0-alpine
+    container_name: nextcloud_redis
+    networks:
+      - traefik_network
+    restart: unless-stopped
+
+  nextcloud_app:
+    #image: nextcloud:18-fpm-alpine
+    image: nextcloud:18-apache
+    container_name: nextcloud_app
+    restart: unless-stopped
+    networks:
+      - traefik_network
+    user: {{ puid }}:{{ puid }}
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0 
+      # The line above allows an unprivileged user (the uid/gid of the homelab user) to
+      # listen on any port (https://github.com/nextcloud/docker/issues/359)
+      # Used / needed for apache to l
+    volumes:
+      - "{{ service_root }}/webroot:/var/www/html"
+      - "{{ service_root }}/config:/var/www/html/config"
+      - "{{ service_root }}/data:/var/www/html/data"
+      - "{{ service_root }}/apps:/var/www/html/custom_apps"
+      - "{{ service_root }}/themes:/var/www/html/themes"
+    environment:
+      - MYSQL_HOST=nextcloud_db
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD={{lookup('password', './settings/passwords/nextcloud_db_password chars=ascii_letters')}}
+      - MYSQL_DATABASE=nextcloud_db
+      - UPLOAD_MAX_SIZE=10G
+      - APC_SHM_SIZE=128M
+      - OPCACHE_MEM_SIZE=128
+      - CRON_PERIOD=15m
+      - TZ={{ server_common_timezone }}
+      - REDIS_HOST=nextcloud_redis
+      - NEXTCLOUD_TRUSTED_DOMAINS={{ service_domain }}
+      - NEXTCLOUD_UPDATE=0 # triggers the automated install on first run.
+    depends_on:
+      - nextcloud_db
+      - nextcloud_redis
+    labels:
+{% include 'traefik_labels.j2' %}
+

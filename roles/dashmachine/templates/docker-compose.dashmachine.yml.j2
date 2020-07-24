@@ -11,9 +11,8 @@ services:
     restart: unless-stopped
     image: rmountjoy/dashmachine:latest
     container_name: dashmachine
+    # user: #FIXME
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ={{ server_common_timezone }}
     volumes:
       - "{{ service_root }}/data:/dashmachine/dashmachine/user_data"
