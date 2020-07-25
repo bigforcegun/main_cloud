@@ -7,6 +7,18 @@ networks:
     driver: bridge
 
 services:
+  certdumper:
+    image: ldez/traefik-certs-dumper:latest
+    entrypoint: sh -c '
+      apk add jq
+      ; while ! [ -e /data/acme.json ]
+        || ! [ ` cat data/acme.json | jq ".http.Certificates | length"` != 0 ]; do
+          sleep 1
+      ; done
+      && traefik-certs-dumper file --version v2 --watch --source /data/acme.json --dest /data/certs'
+    volumes:
+      - .:/data
+
   # Load Balancer / SSL / Web Server
   traefik:
     image: traefik:v2.2
@@ -19,6 +31,8 @@ services:
 {% endif %}
       - "80:80"
       - "443:443"
+      - "5222:5222"
+      - "5269:5269"
 {% if traefik.additional_env_vars %}
     environment:
 {% for item in traefik.additional_env_vars | dict2items %}

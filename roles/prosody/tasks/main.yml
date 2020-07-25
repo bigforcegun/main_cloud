@@ -1,0 +1,51 @@
+---
+
+- name: Create Prosody necessary folders, with appropriate permissions.
+  file:
+    path: "{{ service_root }}/{{ item }}"
+    state: directory
+    owner: "{{ puid }}"
+    group: "{{ pgid }}"
+  with_items:
+    - "config"
+    - "log"
+    - "modules"
+    - "runtime"
+
+- name: Copy Prosody docker-compose.yml file into place.
+  template:
+    src: docker-compose.prosody.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+  vars:
+    uid: "{{ puid }}"
+    gid: "{{ pgid }}"
+
+- name: Copy Prosody base config
+  copy:
+    src: files/prosody.cfg.lua
+    dest: "{{ service_root }}/config/prosody.cfg.lua"
+    owner: "{{ puid }}"
+    group: "{{ pgid }}"
+
+
+- name: Copy Prosody fix file permission entrypoint
+  template:
+    src: entrypoint-prodosy.sh.j2
+    dest: "{{ service_root }}/entrypoint-prodosy.sh"
+    mode: a+x
+  vars:
+    uid: "{{ puid }}"
+    gid: "{{ pgid }}"
+   
+    
+- name: Configure Prosody systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/prosody.service
+
+#- name: Start prosody
+#  systemd:
+#    name: prosody
+#    enabled: "yes"
+#    daemon-reload: "yes"
+#    state: started

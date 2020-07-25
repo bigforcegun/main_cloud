@@ -1,0 +1,47 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  prosody_app:
+    #image: nextcloud:18-fpm-alpine
+    image: prosody/prosody:latest
+    container_name: prosody_app
+    restart: unless-stopped
+    networks:
+      - traefik_network
+    # user: {{ puid }}:{{ puid }}
+    entrypoint: 
+      - /entrypoint-prodosy.sh
+    volumes:
+      - "{{ service_root }}/entrypoint-prodosy.sh:/entrypoint-prodosy.sh"
+      - "{{ service_root }}/config:/etc/prosody"
+      - "{{ service_root }}/log:/var/log/prosody"
+      # - "{{ service_root }}/modules:/usr/lib/prosody-modules"
+      - "{{ service_root }}/runtime:/var/lib/prosody"
+    environment:
+      - TZ={{ server_common_timezone }}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ traefik.network_name }}"      
+      # - "traefik.tcp.routers.prosody-c2s.rule=HostSNI(`{{ service_domain }}`)"
+      - "traefik.tcp.routers.prosody-c2s.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.prosody-c2s.entrypoints=xmpp"
+      - "traefik.tcp.routers.prosody-c2s.tls=false"
+      # - "traefik.tcp.routers.prosody-c2s.tls.passthrough=true"
+      # - "traefik.tcp.routers.prosody-c2s.tls.certresolver=http"
+      - "traefik.tcp.routers.prosody-c2s.service=prosody-c2s"
+      - "traefik.tcp.services.prosody-c2s.loadbalancer.server.port=5222"
+      # - "traefik.tcp.services.prosody-c2s.loadbalancer.terminationDelay = -1"
+      - "traefik.tcp.routers.prosody-s2s.rule=HostSNI(`{{ service_domain }}`)"
+      - "traefik.tcp.routers.prosody-s2s.entrypoints=xmpp-s2s"
+      - "traefik.tcp.routers.prosody-s2s.tls=false"
+      # - "traefik.tcp.routers.prosody-s2s.tls.passthrough=true"
+      # - "traefik.tcp.routers.prosody-s2s.tls.certresolver=http"
+      - "traefik.tcp.routers.prosody-s2s.service=prosody-s2s"
+      - "traefik.tcp.services.prosody-s2s.loadbalancer.server.port=5269"
+      # - "traefik.tcp.services.prosody-s2s.loadbalancer.terminationDelay = -1"

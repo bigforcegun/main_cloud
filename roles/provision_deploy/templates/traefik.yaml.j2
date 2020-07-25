@@ -3,6 +3,18 @@ global:
   sendAnonymousUsage: {{ traefik.send_anonymous_usage }}
 
 entryPoints:
+  xmpp:
+    address: :5222
+    forwardedHeaders:
+      insecure: true
+    proxyProtocol:
+      insecure: true
+  xmpp-s2s: 
+    address: :5269
+    forwardedHeaders:
+      insecure: true
+    proxyProtocol:
+      insecure: true
   http:
     address: :80
     forwardedHeaders:

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+echo "Changing prosody UID/GID"
+
+usermod -u 1001 prosody
+groupmod -g 1001 prosody
+
+chown prosody:prosody /var/run/prosody
+
+#stat -c %u /var/lib/prosody/.
+#stat -c %u /var/run/prosody/.
+
+exec /entrypoint.sh prosody -F  #RUN ORIGINAL ENTRYPOING

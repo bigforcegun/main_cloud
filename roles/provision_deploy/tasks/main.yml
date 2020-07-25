@@ -3,10 +3,11 @@
   file:
     path: "{{ item }}"
     state: directory
-    mode: "1777"
+    mode: "1777" # FIXME: why
   loop:
     - "{{ traefik_root }}/traefik"
     - "{{ traefik_root }}/traefik/conf.d"
+    - "{{ traefik_root }}/traefik/certs"
     - /etc/docker
   ignore_errors: "yes"
 
@@ -52,6 +53,8 @@
     dest: "{{ traefik_root }}/traefik/docker-compose.yml"
   vars:
     service_domain: "{% if traefik.domain %}{{ traefik.domain }}{% else %}{{ traefik.subdomain }}.{{ domain }}{% endif %}"
+    puid: "{{ PUID }}"
+    pgid: "{{ PUID }}"
 
 - name: Pull Traefik Image
   command: chdir={{ traefik_root }}/traefik/ docker-compose pull
@@ -72,9 +75,6 @@
     service_root: " {{ services_root }}/authelia"
     service_item: "authelia"
 
-- name: Deploy enabled Services
-  include_role:
-    name: "provision_deploy_services"
 
 - debug:
     msg: "Main Cloud Installed successfully! Go to https://organizr.{{ domain }}/ to get started."

@@ -61,6 +61,12 @@ ansible-playbook playbook.provision.yml --tags setup_deploy
 ### Step 2 - Install other services
 
 
+### Install only specified service
+
+```bash
+ansible-playbook playbook.provision.yml --tags setup_service -e service_item=prosody
+```
+
 ## Notes
 
 ### Fsync
@@ -70,17 +76,16 @@ https://github.com/mozilla-services/syncserver/issues/208
 ### Wallabag
 
 ```bash
-
 docker-compose exec -T wallabag_db sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD"' < wallabag_dump.sql
-
 ```
+
 ### Nextcloud
 
--  try to migrate to linuxserver/nextcloud cause of php-fmp and nginx. apache fpm too Sloooooooooooooooooooooooooooow
+- try to migrate to linuxserver/nextcloud cause of php-fmp and nginx. apache fpm too Sloooooooooooooooooooooooooooow
 - nextcloud always autogenerate confix.php, but respects database content
-  - so for mitration you need 
+  - so for mitration you need
     - or update config php to new creads/paths
-    - or 
+    - or
       - delete old config.php
       - visit web
       - create new admin user
@@ -88,6 +93,17 @@ docker-compose exec -T wallabag_db sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSW
 
 ```bash
 docker-compose exec nextcloud_db sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD"'
-docker-compose exec -u 1001 nextcloud_app php occ 
+docker-compose exec -u 1001 nextcloud_app php occ
+```
 
+### Prosody
+
+- https://www.reddit.com/r/Traefik/comments/f696wf/traefik_and_prosody_xmpp/
+
+TODO: autocopy extracted from traefik certs to prosody certs and autoreload (or use integrated certbot????)
+
+debug TLS
+
+```bash
+openssl s_client -servername jabberhost.com -connect jabberhost.com:5222 -starttls xmpp -state -debug
 ```
