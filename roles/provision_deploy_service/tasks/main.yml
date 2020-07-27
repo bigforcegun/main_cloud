@@ -12,5 +12,5 @@
     service_port: "{{ services[service_item].internal_port }}"
     puid: "{{ PGID }}" # FIXME: service specific user and file permissions
     pgid: "{{ PUID }}" # FIXME: service specific user and file permissions
-       
+    
 

@@ -31,6 +31,9 @@
     path: "{{ traefik_root }}/traefik/acme.json"
     mode: 0600
     state: touch
+    access_time: preserve # https://github.com/ansible/ansible/issues/30226
+    modification_time: preserve #FUUUUUUUUUUUUUUUUUUUUUUUUUUUu
+ 
 
 - name: Configure Traefik systemd service.
   template:
@@ -55,26 +58,23 @@
     service_domain: "{% if traefik.domain %}{{ traefik.domain }}{% else %}{{ traefik.subdomain }}.{{ domain }}{% endif %}"
     puid: "{{ PUID }}"
     pgid: "{{ PUID }}"
+  notify: 
+    - restart traefik service
 
 - name: Pull Traefik Image
   command: chdir={{ traefik_root }}/traefik/ docker-compose pull
 
-- name: Start Traefik
+- name: Create Traefik service
   systemd:
     name: traefik
     enabled: "yes"
     daemon-reload: "yes"
-    state: restarted
   ignore_errors: "yes"
 
-- name: Deploy Authelia
-  include_role:
-    name: "authelia"
-  vars:
-    service_domain: "{{ authelia.subdomain }}.{{ domain }}"
-    service_root: " {{ services_root }}/authelia"
-    service_item: "authelia"
-
-
-- debug:
-    msg: "Main Cloud Installed successfully! Go to https://organizr.{{ domain }}/ to get started."
+#- name: Deploy Authelia
+#  include_role:
+#    name: "authelia"
+#  vars:
+#    service_domain: "{{ authelia.subdomain }}.{{ domain }}"
+#    service_root: " {{ services_root }}/authelia"
+#    service_item: "authelia"

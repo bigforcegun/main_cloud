@@ -4,3 +4,4 @@ settings.yml
 vault_password
 inventory
 settings/
+acme.json

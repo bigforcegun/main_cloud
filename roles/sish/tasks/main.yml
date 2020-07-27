@@ -1,0 +1,27 @@
+---
+
+- name: Create Sish necessary folders
+  file:
+    path: "{{ service_root }}/{{ item }}"
+    state: directory
+  with_items:
+    - "pubkeys"
+    - "keys"
+
+- name: Copy Sish docker-compose.yml file into place.
+  template:
+    src: docker-compose.sish.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+  notify: 
+    - restart systemd service
+
+- name: Configure Sish systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/sish.service
+
+- name: Start Sish
+  systemd:
+    name: "{{ service_item }}"
+    enabled: "yes"
+    daemon-reload: "yes"

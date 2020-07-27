@@ -15,6 +15,12 @@ entryPoints:
       insecure: true
     proxyProtocol:
       insecure: true
+  socks5: 
+    address: :1080
+    forwardedHeaders:
+      insecure: true
+    proxyProtocol:
+      insecure: true
   http:
     address: :80
     forwardedHeaders:
@@ -23,6 +29,12 @@ entryPoints:
       insecure: true
   https:
     address: :443
+    forwardedHeaders:
+      insecure: true
+    proxyProtocol:
+      insecure: true
+  ssh_sish:
+    address: :2222
     forwardedHeaders:
       insecure: true
     proxyProtocol:
@@ -64,6 +76,7 @@ certificatesResolvers:
       storage: acme.json
       dnsChallenge:
         provider: {{ traefik.dns_challenge_provider }}
+      
   http:
     acme:
       email: {{ ((admin_email == None) | ternary('test@test.com', admin_email)) }}
@@ -71,4 +84,3 @@ certificatesResolvers:
       httpChallenge:
         # used during the challenge
         entryPoint: http
-  

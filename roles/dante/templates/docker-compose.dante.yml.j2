@@ -1,0 +1,30 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  danted:
+    #image: nextcloud:18-fpm-alpine
+    image: vimagick/dante
+    container_name: danted
+    restart: unless-stopped
+    networks:
+      - traefik_network
+    entrypoint: 
+      - /entrypoint-dante.sh
+    volumes:
+      - "{{ service_root }}/config/sockd.conf:/etc/sockd.conf"
+      - "{{ service_root }}/entrypoint-dante.sh:/entrypoint-dante.sh"
+    environment:
+      - TZ={{ server_common_timezone }}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ traefik.network_name }}"
+      - "traefik.tcp.routers.{{ service_item }}.rule=HostSNI(`*`)" 
+      - "traefik.tcp.routers.{{ service_item }}.entrypoints=socks5"
+      - "traefik.tcp.routers.{{ service_item }}.service={{ service_item }}"
+      - "traefik.tcp.services.{{ service_item }}.loadbalancer.server.port={{ service_port }}"

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+echo "Creating Dante users"
+
+useradd username
+echo username:password | chpasswd
+
+exec sockd -f $CFGFILE -p $PIDFILE -N $WORKERS

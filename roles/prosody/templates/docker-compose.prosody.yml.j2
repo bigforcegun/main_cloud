@@ -21,7 +21,7 @@ services:
       - "{{ service_root }}/entrypoint-prodosy.sh:/entrypoint-prodosy.sh"
       - "{{ service_root }}/config:/etc/prosody"
       - "{{ service_root }}/log:/var/log/prosody"
-      # - "{{ service_root }}/modules:/usr/lib/prosody-modules"
+      - "{{ service_root }}/modules:/usr/lib/prosody-modules"
       - "{{ service_root }}/runtime:/var/lib/prosody"
     environment:
       - TZ={{ server_common_timezone }}

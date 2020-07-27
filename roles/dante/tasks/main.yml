@@ -1,0 +1,42 @@
+---
+
+- name: Create Dante necessary folders
+  file:
+    path: "{{ service_root }}/{{ item }}"
+    state: directory
+  with_items:
+    - "config"
+    
+- name: Copy Dante docker-compose.yml file into place.
+  template:
+    src: docker-compose.dante.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+  notify: 
+    - restart systemd service
+
+- name: Copy Dante config
+  copy:
+    src: files/sockd.conf
+    dest: "{{ service_root }}/config/sockd.conf"
+  notify: 
+    - restart systemd service
+
+- name: Copy Dante custom entrypoint
+  template:
+    src: entrypoint-dante.sh.j2
+    dest: "{{ service_root }}/entrypoint-dante.sh"
+    mode: a+x
+  notify: 
+    - restart systemd service
+    
+- name: Configure Dante systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/dante.service
+ 
+- name: Enable Datnte service
+  tags: never
+  systemd:
+    name: dante
+    enabled: "yes"
+    daemon-reload: "yes"

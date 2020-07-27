@@ -70,6 +70,7 @@ modules_enabled = {
                 --"watchregistrations"; -- Alert admins of registrations
                 --"motd"; -- Send a message to users when they log in
                 --"legacyauth"; -- Legacy authentication. Only used by some old clients and bots.
+                "e2e_policy"
 };
 
 -- These modules are auto-loaded, but should you want

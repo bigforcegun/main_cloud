@@ -36,6 +36,8 @@
   vars:
     uid: "{{ puid }}"
     gid: "{{ pgid }}"
+  notify: 
+    - restart systemd servic
    
     
 - name: Configure Prosody systemd service.
@@ -43,9 +45,8 @@
     src: service.j2
     dest: /etc/systemd/system/prosody.service
 
-#- name: Start prosody
-#  systemd:
-#    name: prosody
-#    enabled: "yes"
-#    daemon-reload: "yes"
-#    state: started
+- name: Start prosody
+  systemd:
+    name: prosody
+    enabled: "yes"
+    daemon-reload: "yes"
