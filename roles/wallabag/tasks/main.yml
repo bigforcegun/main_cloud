@@ -12,15 +12,18 @@
   template:
     src: docker-compose.wallabag.yml.j2
     dest: "{{ service_root }}/docker-compose.yml"
- 
+  notify: 
+    - restart systemd service
+
 - name: Configure Wallabag systemd service.
   template:
     src: service.j2
     dest: /etc/systemd/system/wallabag.service
+  notify: 
+    - restart systemd service  
 
 - name: Start Wallabag
   systemd:
     name: wallabag
     enabled: "yes"
     daemon-reload: "yes"
-    state: started

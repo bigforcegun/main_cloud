@@ -1,6 +1,7 @@
 {{ config_prefix }}
 
 {% for service in dash_services | flatten(1) if services[service].enabled == true and service != 'dashmachine' %}
+
 [{{ service | title }}] 
 prefix = https://
 url = {{ services[service].subdomain }}.{{ domain }}
@@ -8,4 +9,5 @@ icon = static/images/apps/default.png
 sidebar_icon = static/images/apps/default.png
 open_in = this_tab
 tags = main
+
 {% endfor %}

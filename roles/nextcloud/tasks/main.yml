@@ -21,15 +21,18 @@
   vars:
     uid: "{{ puid }}"
     gid: "{{ pgid }}"
+  notify: 
+    - restart systemd service  
 
 - name: Configure Nextcloud systemd service.
   template:
     src: service.j2
     dest: /etc/systemd/system/nextcloud.service
+  notify: 
+    - restart systemd service
 
 - name: Start Nextcloud
   systemd:
     name: nextcloud
     enabled: "yes"
     daemon-reload: "yes"
-    state: started

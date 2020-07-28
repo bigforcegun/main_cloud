@@ -15,6 +15,8 @@
   template:
     src: docker-compose.dashmachine.yml.j2
     dest: "{{ service_root }}/docker-compose.yml"
+  notify: 
+    - restart systemd service
 
 - name: Copy Dashmachine config.ini file into place.
   template:
@@ -23,15 +25,18 @@
   vars:
     config_prefix: " {{ lookup('file', './settings/dashmachine/config.ini', ) }} "
     dash_services: "{{ services.keys() | list }}" 
+  notify: 
+    - restart systemd service
 
 - name: Configure Dashmachine systemd service.
   template:
     src: service.j2
     dest: /etc/systemd/system/dashmachine.service
+  notify: 
+    - restart systemd service
 
-- name: Start Dashmachine
+- name: Enable Dashmachine service 
   systemd:
     name: dashmachine
     enabled: "yes"
     daemon-reload: "yes"
-    state: started

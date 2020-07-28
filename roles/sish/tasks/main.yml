@@ -19,8 +19,11 @@
   template:
     src: service.j2
     dest: /etc/systemd/system/sish.service
+  notify: 
+    - restart systemd service
 
-- name: Start Sish
+
+- name: Enable Sish service
   systemd:
     name: "{{ service_item }}"
     enabled: "yes"

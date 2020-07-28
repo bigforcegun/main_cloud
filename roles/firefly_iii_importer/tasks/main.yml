@@ -9,15 +9,16 @@
   template:
     src: docker-compose.{{ service_item }}.yml.j2
     dest: "{{ service_root }}/docker-compose.yml"
+  notify: 
+    - restart systemd service
 
 - name: Configure {{ service_item }} systemd service.
   template:
     src: service.j2
     dest: "/etc/systemd/system/{{ service_item }}.service"
 
-- name: Start {{ service_item }}
+- name: Enable {{ service_item }} service
   systemd:
     name: "{{ service_item }}"
     enabled: "yes"
     daemon-reload: "yes"
-    state: restarted

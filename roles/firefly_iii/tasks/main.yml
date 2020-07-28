@@ -15,8 +15,10 @@
   template:
     src: service.j2
     dest: /etc/systemd/system/firefly_iii.service
-
-- name: Manage systemd service firefly_iii
+  notify: 
+    - restart systemd service
+    
+- name: Enable firefly_iii service
   systemd:
     name: firefly_iii
     enabled: "yes"

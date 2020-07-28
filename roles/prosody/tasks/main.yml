@@ -19,6 +19,8 @@
   vars:
     uid: "{{ puid }}"
     gid: "{{ pgid }}"
+  notify: 
+    - restart systemd service
 
 - name: Copy Prosody base config
   copy:
@@ -26,6 +28,8 @@
     dest: "{{ service_root }}/config/prosody.cfg.lua"
     owner: "{{ puid }}"
     group: "{{ pgid }}"
+  notify: 
+    - restart systemd service
 
 
 - name: Copy Prosody fix file permission entrypoint
@@ -37,16 +41,17 @@
     uid: "{{ puid }}"
     gid: "{{ pgid }}"
   notify: 
-    - restart systemd servic
+    - restart systemd service
    
     
 - name: Configure Prosody systemd service.
   template:
     src: service.j2
     dest: /etc/systemd/system/prosody.service
+  notify: 
+    - restart systemd service
 
-- name: Start prosody
+- name: Enable Prosody service
   systemd:
     name: prosody
     enabled: "yes"
-    daemon-reload: "yes"
