@@ -7,11 +7,37 @@ networks:
       name: {{ traefik.network_name }}
 
 services:
+  # Шел бы я нахуй с траефикм, так и не понял, почему етот господин под ним плохо работает, соединение зажевывает и ВСЕ
+  # Анамнез - TCP доходит до данте и "зажевываеццо"
+  # Если его убить - будет ошибка - error after reading 0 bytes in 0 seconds
+  #danted_traefik: 
+    #image: vimagick/dante
+    #container_name: danted_traefik
+    #restart: unless-stopped
+    #networks:
+    #  - traefik_network
+    #entrypoint: 
+    #  - /entrypoint-dante.sh
+    #volumes:
+    #  - "{{ service_root }}/config/sockd.conf:/etc/sockd.conf"
+    #  - "{{ service_root }}/entrypoint-dante.sh:/entrypoint-dante.sh"
+    #environment:
+    #  - TZ={{ server_common_timezone }}
+    #labels:
+    #  - "traefik.enable=true"
+    #  - "traefik.docker.network={{ traefik.network_name }}"
+    #  - "traefik.tcp.routers.{{ service_item }}.tls=false"
+    #  - "traefik.tcp.routers.{{ service_item }}.rule=HostSNI(`*`)" 
+    #  - "traefik.tcp.routers.{{ service_item }}.entrypoints=socks5"
+    #  - "traefik.tcp.routers.{{ service_item }}.service={{ service_item }}"
+    #  - "traefik.tcp.services.{{ service_item }}.loadbalancer.server.port={{ service_port }}" 
+      
   danted:
-    #image: nextcloud:18-fpm-alpine
     image: vimagick/dante
     container_name: danted
     restart: unless-stopped
+    ports:
+      - "1081:1080"
     networks:
       - traefik_network
     entrypoint: 
@@ -21,10 +47,3 @@ services:
       - "{{ service_root }}/entrypoint-dante.sh:/entrypoint-dante.sh"
     environment:
       - TZ={{ server_common_timezone }}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network={{ traefik.network_name }}"
-      - "traefik.tcp.routers.{{ service_item }}.rule=HostSNI(`*`)" 
-      - "traefik.tcp.routers.{{ service_item }}.entrypoints=socks5"
-      - "traefik.tcp.routers.{{ service_item }}.service={{ service_item }}"
-      - "traefik.tcp.services.{{ service_item }}.loadbalancer.server.port={{ service_port }}"

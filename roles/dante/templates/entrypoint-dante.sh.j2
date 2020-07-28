@@ -2,7 +2,10 @@
 
 echo "Creating Dante users"
 
-useradd username
-echo username:password | chpasswd
+{% for user in services.dante.users  %}
+useradd {{ user.username }}
+echo "{{ user.username }}:{{ user.password }}" | chpasswd
+{% endfor %}
+
 
 exec sockd -f $CFGFILE -p $PIDFILE -N $WORKERS

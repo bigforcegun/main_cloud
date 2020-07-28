@@ -34,7 +34,7 @@ services:
       - "5222:5222"
       - "5269:5269"
       - "2222:2222"
-      - "1080:1080"
+      # - "1080:1080"
 {% if traefik.additional_env_vars %}
     environment:
 {% for item in traefik.additional_env_vars | dict2items %}
