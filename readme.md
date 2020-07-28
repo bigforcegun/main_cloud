@@ -21,7 +21,7 @@ if you need change ssh port for common securiry reasons (if you have no VPN netw
 This command change your ssh port from default (22) to your inventory file port
 
 ```bash
-ansible-playbook -i playbook.provision.yml --tags setup_ssh -e 'ansible_user=root'
+ansible-playbook -i playbook.main_cloud.yml --tags provision_ssh -e 'ansible_user=root'
 ```
 
 Notes:
@@ -33,7 +33,7 @@ Notes:
 ### Step 1 - Create main admin and main ansible users with keys
 
 ```bash
- ansible-playbook playbook.provision.yml --tags setup_users -e 'ansible_user=root'
+ ansible-playbook playbook.main_cloud.yml --tags provision_users -e 'ansible_user=root'
 ```
 
 Notes:
@@ -43,13 +43,13 @@ Notes:
 ### Step 2 - Install packgages and configure server
 
 ```bash
-ansible-playbook playbook.provision.yml --tags setup_common
+ansible-playbook playbook.main_cloud.yml --tags provision_common
 ```
 
 ## Deploy
 
 ```bash
-ansible-playbook playbook.provision.yml --tags setup_deploy
+ansible-playbook playbook.main_cloud.yml --tags deploy_server
 ```
 
 ### Step 1 - Install "System" services
@@ -60,11 +60,14 @@ ansible-playbook playbook.provision.yml --tags setup_deploy
 
 ### Step 2 - Install other services
 
+```bash
+ansible-playbook playbook.main_cloud.yml --tags deploy_services
+```
 
 ### Install only specified service
 
 ```bash
-ansible-playbook playbook.provision.yml --tags setup_service -e service_item=prosody
+ansible-playbook playbook.main_cloud.yml --tags deploy_service -e service_item=prosody
 ```
 
 ## Notes

@@ -1,12 +1,75 @@
 ---
-- hosts: main_services
-  become: yes 
-  become_user: root
+
+- name: Setup server ssh config
   vars_files: 
     - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+  hosts: all
+  become: false
+  gather_facts: false
+  tags: provision_ssh
   roles:
-    - role: dashmachine
-      tags: 
-        - dashmachine
+    # Install Docker, configure basic server settings
+    - provision_ssh
+    #- provision_init
+
+
+- name: Setup server users set
+  become: true
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+    - 'vault.yml'
+  hosts: main_services
+  tags: provision_users
+  roles:
+    - provision_users
+
+
+- name: Finalize server setup
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+  become: true
+  hosts: main_services
+  tags: provision_common
+  roles:
+    # Install Docker, configure basic server settings
+    - provision_common
     
-   
+
+- name: Deploy server infrastructure
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+  become: true
+  hosts: main_services
+  tags: setup_deploy
+  roles:
+    - deploy_server
+
+
+- name: Deploy user cloud service
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+  become: true
+  hosts: main_services
+  tags: deploy_services
+  roles:
+    # Install Docker, configure basic server settings
+    - deploy_services
+
+
+- name: Deploy services3
+  vars_files: 
+    - ['settings.yml', 'defaults/settings.default.yml']
+    - ['vault.yml', 'defaults/vault.default.yml']
+  become: true
+  hosts: main_services
+  tags: deploy_service
+  roles:
+    # Install Docker, configure basic server settings
+    - deploy_service
+  vars:
+    service_item: "{{ service_item }}" 

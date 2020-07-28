@@ -71,10 +71,10 @@
     daemon-reload: "yes"
   ignore_errors: "yes"
 
-#- name: Deploy Authelia
-#  include_role:
-#    name: "authelia"
-#  vars:
-#    service_domain: "{{ authelia.subdomain }}.{{ domain }}"
-#    service_root: " {{ services_root }}/authelia"
-#    service_item: "authelia"
+- name: Deploy Authelia
+  include_role:
+    name: "service_authelia"
+  vars:
+    service_domain: "{{ authelia.subdomain }}.{{ domain }}"
+    service_root: " {{ services_root }}/authelia"
+    service_item: "authelia"
