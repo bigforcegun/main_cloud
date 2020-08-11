@@ -4,7 +4,6 @@ Inspired by
 
 - <https://gitlab.com/NickBusey/HomelabOS>
 
-
 ## Goals
 
 - only docker
@@ -60,6 +59,17 @@ ansible-playbook playbook.main_cloud.yml --tags deploy_server
 
 ### Step 2 - Install other services
 
+- cyberchef
+- dante
+- dashmachine
+- firefly_iii
+- firefox sync
+- monica
+- nextcloud
+- prosody
+- sish
+- wallabag
+
 ```bash
 ansible-playbook playbook.main_cloud.yml --tags deploy_services
 ```
@@ -70,7 +80,7 @@ ansible-playbook playbook.main_cloud.yml --tags deploy_services
 ansible-playbook playbook.main_cloud.yml --tags deploy_service -e service_item=prosody
 ```
 
-## Notes
+## Notes and helpers
 
 ### Fsync
 
