@@ -1,0 +1,17 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+
+services:
+  cyberchef_app:
+    image: mpepping/cyberchef:latest
+    container_name: cyberchef_app
+    restart: unless-stopped
+    networks:
+      - traefik_network
+    labels:
+{% include 'traefik_labels.j2' %}
