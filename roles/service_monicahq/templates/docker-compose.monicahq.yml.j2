@@ -1,0 +1,43 @@
+---
+version: '3'
+
+networks:
+  traefik_network:
+    external:
+      name: {{ traefik.network_name }}
+  monicahq_network:
+
+services:
+  # Personal Relationship Database
+  monicahq_app:
+    container_name: monicahq_app
+    image: monicahq/monicahq:{{ service_version }}
+    networks:
+      - traefik_network
+      - monicahq_network
+    restart: unless-stopped
+    depends_on:
+      - monicahq_db
+    volumes:
+      - "{{ service_root }}/public:/var/www/monica/storage/app/public"
+      - "{{ service_root }}/logs:/var/www/monica/storage/logs"
+    env_file:
+      - "{{ service_root }}/monicahq.env"
+    environment:
+      - APP_KEY="{{ lookup('password', './settings/passwords/monicahq_app_key chars=ascii_letters length=32') }}"
+      - DB_PASSWORD="{{ lookup('password', './settings/passwords/monicahq_db_password chars=ascii_letters') }}"
+    labels:
+{% include 'traefik_labels.j2' %}
+
+  monicahq_db:
+    image: mariadb:{{ service_db_version }}
+    networks:
+      - monicahq_network
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=monica
+      - MYSQL_PASSWORD={{ lookup('password', './settings/passwords/monicahq_db_password chars=ascii_letters') }}
+      - MYSQL_USER=monica
+      - MYSQL_ROOT_PASSWORD={{ lookup('password', './settings/passwords/monicahq_db_root_password chars=ascii_letters') }}
+    volumes:
+      - "{{ service_root }}/mysql:/var/lib/mysql"

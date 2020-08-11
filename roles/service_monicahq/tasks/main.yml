@@ -1,0 +1,38 @@
+---
+- name: Create Monicahq necessary folders
+  file:
+    path: "{{ service_root }}/{{ item }}"
+    state: directory
+  with_items:
+    - "public"
+    - "logs"
+    - "mysql"
+   
+- name: Copy Monicahq docker-compose.yml file into place.
+  template:
+    src: docker-compose.monicahq.yml.j2
+    dest: "{{ service_root }}/docker-compose.yml"
+  notify: 
+    - restart systemd service
+
+- name: Copy Monicahq .env file into place.
+  template:
+    src: monicahq.env.j2
+    dest: "{{ service_root }}/monicahq.env"
+  vars:
+    monicahq_db_password: "{{lookup('password', './settings/passwords/monicahq_db_password chars=ascii_letters')}}"
+  notify: 
+    - restart systemd service
+    
+- name: Configure Monicahq systemd service.
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/monicahq.service
+  notify: 
+    - restart systemd service
+
+- name: Enable Monicahq service
+  systemd:
+    name: monicahq
+    enabled: "yes"
+    daemon-reload: "yes"
