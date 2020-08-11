@@ -2,6 +2,7 @@
 version: '3'
 
 networks:
+  nextcloud_network:
   traefik_network:
     external:
       name: {{ traefik.network_name }}
@@ -9,14 +10,14 @@ networks:
 services:
   nextcloud_db:
     # image: linuxserver/mariadb:10.4
-    image: mariadb:10.4
+    image: "mariadb:{{ service_db_version }}"
     restart: unless-stopped
     container_name: nextcloud_db
     user: {{ puid }}:{{ pgid }}
     volumes:
       - "{{ service_root }}/db:/var/lib/mysql"
     networks:
-      - traefik_network
+      - nextcloud_network
     restart: unless-stopped
     environment:
       - TZ={{ server_common_timezone }}
@@ -28,7 +29,7 @@ services:
     image: redis:5.0-alpine
     container_name: nextcloud_redis
     networks:
-      - traefik_network
+      - nextcloud_network
     restart: unless-stopped
 
   nextcloud_app:
@@ -38,6 +39,7 @@ services:
     restart: unless-stopped
     networks:
       - traefik_network
+      - nextcloud_network
     user: {{ puid }}:{{ puid }}
     sysctls:
       - net.ipv4.ip_unprivileged_port_start=0 

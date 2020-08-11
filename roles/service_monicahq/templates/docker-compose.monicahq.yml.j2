@@ -2,10 +2,10 @@
 version: '3'
 
 networks:
+  monicahq_network:
   traefik_network:
     external:
-      name: {{ traefik.network_name }}
-  monicahq_network:
+      name: {{ traefik.network_name }}  
 
 services:
   # Personal Relationship Database

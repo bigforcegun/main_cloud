@@ -2,6 +2,7 @@
 version: '3'
 
 networks:
+  firefly_iii_network:
   traefik_network:
     external:
       name: {{ traefik.network_name }}
@@ -37,6 +38,7 @@ services:
     image: jc5x/firefly-iii
     networks:
       - traefik_network
+      - firefly_iii_network
     volumes:
       - "{{ service_root }}/export:/var/www/firefly-iii/storage/export"
       - "{{ service_root }}/upload:/var/www/firefly-iii/storage/upload"
@@ -44,13 +46,13 @@ services:
 {% include 'traefik_labels.j2' %}
 
   firefly_iii_db:
-    image: "postgres:12"
+    image: "postgres:{{ service_db_version }}"
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD={{ lookup('password', './settings/passwords/firefly_db_password chars=ascii_letters') }}
       - POSTGRES_USER=firefly_db
       - POSTGRES_DB=firefly_db
     networks:
-      - traefik_network
+      - firefly_iii_network
     volumes:
       - "{{ service_root }}/db:/var/lib/postgresql/data"
