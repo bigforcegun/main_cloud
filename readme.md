@@ -128,3 +128,11 @@ https://community.containo.us/t/routing-ssh-traffic-with-traefik-v2/717/7
 ### Dante
 
 curl -x socks5h://username:password@proxy.host.com:1081 ifconfig.co
+
+### Monica
+
+```bash
+docker-compose exec monicahq_app /bin/sh
+
+php artisan monica:test-email
+```
