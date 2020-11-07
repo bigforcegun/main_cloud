@@ -11,7 +11,7 @@
     service_auth: "{{ services[service_item].auth }}"
     service_port: "{{ services[service_item].internal_port }}"
     service_version: "{{ lookup('vars', 'services[' + service_item + '].version', default='latest')}}"
-    service_db_version: "{{ lookup('vars', 'services[' + service_item + '].db_version', default='latest')}}"
+    service_db_version: "{% if services[service_item].db_version %}{{services[service_item].db_version}}{% else %}latest{% endif %}"
     puid: "{{ PGID }}" # FIXME: service specific user and file permissions
     pgid: "{{ PUID }}" # FIXME: service specific user and file permissions
     

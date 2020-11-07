@@ -33,6 +33,7 @@ services:
       - MAIL_USERNAME={{ smtp.user }}
       - MAIL_PASSWORD={{ smtp.pass }}
       - MAIL_ENCRYPTION=tls
+      - TRUSTED_PROXIES=**
       - TZ={{ server_common_timezone }}
       - ServerName={{ service_domain }}
     image: jc5x/firefly-iii

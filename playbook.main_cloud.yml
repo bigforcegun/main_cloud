@@ -49,7 +49,7 @@
     - deploy_server
 
 
-- name: Deploy user cloud service
+- name: Deploy all enabled services
   vars_files: 
     - ['settings.yml', 'defaults/settings.default.yml']
     - ['vault.yml', 'defaults/vault.default.yml']
@@ -61,7 +61,7 @@
     - deploy_services
 
 
-- name: Deploy services3
+- name: Deploy one service
   vars_files: 
     - ['settings.yml', 'defaults/settings.default.yml']
     - ['vault.yml', 'defaults/vault.default.yml']

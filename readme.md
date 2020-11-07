@@ -136,3 +136,22 @@ docker-compose exec monicahq_app /bin/sh
 
 php artisan monica:test-email
 ```
+
+### Firefly III
+
+```bash
+docker-compose exec firefly_iii_db sh -c 'pg_dumpall -c -U $POSTGRES_USER' > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+```
+
+drafts
+
+```bash
+docker exec -t your-db-container pg_dumpall -c -U postgres > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+# Restore your databases
+cat your_dump.sql | docker exec -i your-db-container psql -U postgres
+
+docker-compose exec -T firefly_iii_db 
+
+
+docker-compose exec -u posgres firefly_iii_db sh -c 'pg_dump -c -U $POSTGRES_USER -p $POSTGRES_PASSWORD -l $POSTGRES_DB'
+```
