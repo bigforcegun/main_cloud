@@ -12,13 +12,35 @@ services:
     environment:
       - FIREFLY_III_ACCESS_TOKEN="{{ lookup('password', './settings/passwords/firefly_importer_access_token chars=ascii_letters') }}"
       - FIREFLY_III_URI="{{services.firefly_iii_importer.firefly_iii_api_uri}}"
-      - APP_ENV="production"
+      # - APP_ENV="production"
       - WEB_SERVER=true
       - APP_URL="https://{{ service_domain }}"
-      - ServerName={{ service_domain }}
+      - ServerName="{{ service_domain }}"
       - TZ={{ server_common_timezone }}
+      - TRUSTED_PROXIES=**
+      - LOG_LEVEL="info"
+      - APP_LOG_LEVEL="info"
+      - APP_DEBUG=false
+      - ASSET_URL="https://{{ service_domain }}"
     image: fireflyiii/csv-importer:develop
     networks:
       - traefik_network
     labels:
-{% include 'traefik_labels.j2' %}
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ traefik.network_name }}"
+      - "traefik.http.services.{{ service_item }}.loadbalancer.server.scheme=http"
+      - "traefik.http.services.{{ service_item }}.loadbalancer.server.port={{ service_port }}"
+      - "traefik.http.routers.{{ service_item }}-http.rule=Host(`{{ service_domain }}`)"
+      - "traefik.http.routers.{{ service_item }}-http.entrypoints=http"
+      - "traefik.http.routers.{{ service_item }}-http.middlewares={% if service_https_only %}redirect@file, security-headers@file, {% else %}{% if service_auth %}{% if authelia.enabled %}authelia@file{% else %}basicAuth@file{% endif %}, {% endif %}{% endif %}customFrameCloud@file"
+      - "traefik.http.routers.{{ service_item }}.rule=Host(`{{ service_domain }}`)"
+      - "traefik.http.routers.{{ service_item }}.entrypoints=https"
+      - "traefik.http.routers.{{ service_item }}.middlewares={% if service_auth %}basicAuth@file, {% endif %}customFrameCloud@file"
+      - "traefik.http.routers.{{ service_item }}.tls=true"
+{% if traefik.dns_challenge_provider_enabled %}
+      - "traefik.http.routers.{{ service_item }}.tls.certresolver=dns"
+      - "traefik.http.routers.{{ service_item }}.tls.domains[0].main={{ service_domain }}"
+      - "traefik.http.routers.{{ service_item }}.tls.domains[0].sans=*.{{ service_domain }}"
+{% else %}
+      - "traefik.http.routers.{{ service_item }}.tls.certresolver=http"
+{% endif %}

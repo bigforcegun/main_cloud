@@ -44,7 +44,7 @@
     - ['vault.yml', 'defaults/vault.default.yml']
   become: true
   hosts: main_services
-  tags: setup_deploy
+  tags: deploy_server
   roles:
     - deploy_server
 

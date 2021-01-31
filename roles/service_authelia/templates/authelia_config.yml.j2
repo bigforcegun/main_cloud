@@ -212,6 +212,15 @@ storage:
     password: {{lookup('password', './settings/passwords/authelia_postgres_password')}}
     sslmode: disable
 
+
+server:
+  # Buffers usually should be configured to be the same value.
+  # Explanation at https://docs.authelia.com/configuration/server.html
+  # Read buffer size configures the http server's maximum incoming request size in bytes.
+  read_buffer_size: 4096
+  # Write buffer size configures the http server's maximum outgoing response size in bytes.
+  write_buffer_size: 4096
+
 # registration or a TOTP registration.
 # Use only an available configuration: filesystem, gmail
 notifier:

@@ -6,6 +6,7 @@
   vars:
     service_domain: "{% if services[service_item].domain %}{{ services[service_item].domain }}{% else %}{{ services[service_item].subdomain }}.{{ domain }}{% endif %}"
     query: "{{ 'services.' + service_item + '.enabled|bool' }}"
+    service: "{{ services[service_item] }}"
     service_root: "{{ services_root }}/{{ service_item }}"
     service_https_only: "{{ services[service_item].https_only }}"
     service_auth: "{{ services[service_item].auth }}"

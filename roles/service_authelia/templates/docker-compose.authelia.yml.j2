@@ -48,7 +48,7 @@ services:
   postgres:
     networks:
       - traefik_network
-    image: postgres:latest
+    image: postgres:12
     environment:
       POSTGRES_DB: my_authelia
       POSTGRES_PASSWORD: {{lookup('password', './settings/passwords/authelia_postgres_password')}}

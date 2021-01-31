@@ -155,3 +155,9 @@ docker-compose exec -T firefly_iii_db
 
 docker-compose exec -u posgres firefly_iii_db sh -c 'pg_dump -c -U $POSTGRES_USER -p $POSTGRES_PASSWORD -l $POSTGRES_DB'
 ```
+
+## TODO
+
+- rewrite authelia ti service
+- rewrite services to service opts
+- make authelia as mode to auth not condition
